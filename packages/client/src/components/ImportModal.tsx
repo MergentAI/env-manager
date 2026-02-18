@@ -85,7 +85,6 @@ export const ImportModal = ({ isOpen, onClose, onImport }: ImportModalProps) => 
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              accept=".env,text/plain"
               className="hidden"
             />
           </div>
