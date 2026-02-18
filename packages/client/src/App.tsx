@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { AuthGuard } from './components/AuthGuard';
 import { ProjectList } from './components/ProjectList';
 import { EnvironmentView } from './components/EnvironmentView';
+import { ConfirmModal } from './components/ConfirmModal';
 import { api } from './lib/api';
 
 function App() {
@@ -9,6 +11,13 @@ function App() {
   const [environments, setEnvironments] = useState<string[]>(['local', 'alpha', 'prod']);
   const [selectedEnv, setSelectedEnv] = useState('local');
   const [newEnvName, setNewEnvName] = useState('');
+  
+  // Unsaved changes state
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    pendingAction: (() => void) | null;
+  }>({ isOpen: false, pendingAction: null });
 
   useEffect(() => {
     if (selectedProject) {
@@ -19,7 +28,6 @@ function App() {
   const loadEnvironments = async (project: string) => {
     try {
       const envs = await api.getEnvironments(project);
-      // Ensure default envs are always present for options, but prioritize fetched ones
       const uniqueEnvs = Array.from(new Set([...envs, 'local', 'alpha', 'prod']));
       setEnvironments(uniqueEnvs);
       if (!uniqueEnvs.includes(selectedEnv)) {
@@ -33,17 +41,58 @@ function App() {
   const handleAddEnv = () => {
     if (newEnvName && !environments.includes(newEnvName)) {
       setEnvironments([...environments, newEnvName]);
-      setSelectedEnv(newEnvName);
+      handleEnvChange(newEnvName); // Use the protected handler
       setNewEnvName('');
     }
   };
 
+  // Navigation Logic with Protection
+  const confirmNavigation = (action: () => void) => {
+    if (hasUnsavedChanges) {
+      setConfirmModal({
+        isOpen: true,
+        pendingAction: action,
+      });
+    } else {
+      action();
+    }
+  };
+
+  const handleProjectChange = (project: string) => {
+    confirmNavigation(() => setSelectedProject(project));
+  };
+
+  const handleEnvChange = (env: string) => {
+    confirmNavigation(() => setSelectedEnv(env));
+  };
+
+  const handleConfirmDiscard = () => {
+    if (confirmModal.pendingAction) {
+      confirmModal.pendingAction();
+    }
+    setConfirmModal({ isOpen: false, pendingAction: null });
+    setHasUnsavedChanges(false);
+  };
+
+  const handleCancelDiscard = () => {
+    setConfirmModal({ isOpen: false, pendingAction: null });
+  };
+
   return (
     <AuthGuard>
+      <Toaster position="top-right" />
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Unsaved Changes"
+        message="You have unsaved changes in the current environment. Do you want to discard them and switch?"
+        onConfirm={handleConfirmDiscard}
+        onCancel={handleCancelDiscard}
+      />
+      
       <div className="flex h-screen bg-gray-50">
         <ProjectList 
           selectedProject={selectedProject || undefined} 
-          onSelectProject={setSelectedProject} 
+          onSelectProject={handleProjectChange} 
         />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -59,7 +108,7 @@ function App() {
                     {environments.map((env) => (
                       <button
                         key={env}
-                        onClick={() => setSelectedEnv(env)}
+                        onClick={() => handleEnvChange(env)}
                         className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                           selectedEnv === env
                             ? 'bg-white text-blue-600 shadow-sm'
@@ -112,6 +161,7 @@ function App() {
                   key={`${selectedProject}-${selectedEnv}`} 
                   project={selectedProject} 
                   env={selectedEnv} 
+                  onDirtyChange={setHasUnsavedChanges}
                 />
               </div>
             ) : (

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { api } from '../lib/api';
 
 interface Variable {
@@ -6,24 +7,42 @@ interface Variable {
   value: string;
 }
 
-export const EnvironmentView = ({ project, env }: { project: string, env: string }) => {
+interface EnvironmentViewProps {
+  project: string;
+  env: string;
+  onDirtyChange: (isDirty: boolean) => void;
+}
+
+export const EnvironmentView = ({ project, env, onDirtyChange }: EnvironmentViewProps) => {
   const [variables, setVariables] = useState<Variable[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  
+  // Track initial state to determine dirtiness
+  const initialVarsRef = useRef<string>('[]');
 
   useEffect(() => {
     fetchVariables();
   }, [project, env]);
 
+  useEffect(() => {
+    const currentVarsStr = JSON.stringify(variables);
+    const isDirty = currentVarsStr !== initialVarsRef.current;
+    onDirtyChange(isDirty);
+  }, [variables, onDirtyChange]);
+
   const fetchVariables = async () => {
     setLoading(true);
+    onDirtyChange(false); // Reset dirty state on load
     try {
       const data = await api.getEnvVars(project, env);
       const vars = Object.entries(data.variables || {}).map(([key, value]) => ({ key, value: String(value) }));
       setVariables(vars);
+      initialVarsRef.current = JSON.stringify(vars);
     } catch (err) {
       setError('Failed to fetch variables');
+      toast.error('Failed to load variables');
     } finally {
       setLoading(false);
     }
@@ -38,9 +57,16 @@ export const EnvironmentView = ({ project, env }: { project: string, env: string
       }, {} as Record<string, string>);
 
       await api.saveEnvVars(project, env, varsObj);
+      
+      // Update initial ref to match saved state
+      initialVarsRef.current = JSON.stringify(variables);
+      onDirtyChange(false);
+      
+      toast.success('Environment variables saved successfully');
       setSaving(false);
     } catch (err) {
       setError('Failed to save variables');
+      toast.error('Failed to save changes');
       setSaving(false);
     }
   };
@@ -60,6 +86,8 @@ export const EnvironmentView = ({ project, env }: { project: string, env: string
   };
 
   if (loading) return <div className="text-gray-500 text-center py-8">Loading...</div>;
+  
+  const isDirty = JSON.stringify(variables) !== initialVarsRef.current;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -67,10 +95,14 @@ export const EnvironmentView = ({ project, env }: { project: string, env: string
         <h3 className="text-lg font-medium text-gray-900">Environment Variables</h3>
         <button
           onClick={handleSave}
-          disabled={saving}
-          className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          disabled={saving || !isDirty}
+          className={`font-medium py-2 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            saving || !isDirty
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
+          }`}
         >
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? 'Saving...' : isDirty ? 'Save Changes' : 'Saved'}
         </button>
       </div>
 
