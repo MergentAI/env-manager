@@ -1,0 +1,27 @@
+{
+  "name": "@env-manager/cli",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "bin": {
+    "envmanager": "bin/envmanager.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.14",
+    "axios": "^1.6.7",
+    "fs-extra": "^11.2.0",
+    "dotenv": "^16.4.1"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.11.20",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
