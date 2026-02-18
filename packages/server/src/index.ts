@@ -34,6 +34,8 @@ const authMiddleware = (req: express.Request, res: express.Response, next: expre
   next();
 };
 
+const isValidName = (name: string) => /^[a-zA-Z0-9_-]+$/.test(name);
+
 app.get('/', (req, res) => {
   res.send('Env Manager API is running');
 });
@@ -76,6 +78,11 @@ app.get('/api/projects', authMiddleware, async (req, res) => {
 app.get('/api/projects/:project/envs', authMiddleware, async (req, res) => {
   try {
     const { project } = req.params;
+    
+    if (!isValidName(project)) {
+        return res.status(400).json({ error: 'Invalid project name' });
+    }
+
     const envs = await listEnvironments(project);
     res.json(envs);
   } catch (error) {
@@ -88,6 +95,11 @@ app.get('/api/projects/:project/envs', authMiddleware, async (req, res) => {
 app.get('/api/projects/:project/env/:env', authMiddleware, async (req, res) => {
   try {
     const { project, env } = req.params;
+    
+    if (!isValidName(project) || !isValidName(env)) {
+        return res.status(400).json({ error: 'Invalid project or environment name' });
+    }
+
     const data = await getProjectEnv(project, env);
     
     if (!data) {
@@ -105,6 +117,11 @@ app.get('/api/projects/:project/env/:env', authMiddleware, async (req, res) => {
 app.post('/api/projects/:project/env/:env', authMiddleware, async (req, res) => {
   try {
     const { project, env } = req.params;
+    
+    if (!isValidName(project) || !isValidName(env)) {
+        return res.status(400).json({ error: 'Invalid project or environment name' });
+    }
+
     const { variables } = req.body;
     
     if (!variables || typeof variables !== 'object') {
@@ -124,6 +141,11 @@ app.post('/api/projects/:project/env/:env', authMiddleware, async (req, res) => 
 app.get('/api/projects/:project/env/:env/status', authMiddleware, async (req, res) => {
   try {
     const { project, env } = req.params;
+    
+    if (!isValidName(project) || !isValidName(env)) {
+        return res.status(400).json({ error: 'Invalid project or environment name' });
+    }
+
     const data = await getProjectEnv(project, env);
     
     if (!data) {
