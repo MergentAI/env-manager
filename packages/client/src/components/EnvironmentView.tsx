@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../lib/api';
+import { ImportModal } from './ImportModal';
 
 interface Variable {
   key: string;
@@ -18,6 +19,7 @@ export const EnvironmentView = ({ project, env, onDirtyChange }: EnvironmentView
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   
   // Track initial state to determine dirtiness
   const initialVarsRef = useRef<string>('[]');
@@ -85,6 +87,23 @@ export const EnvironmentView = ({ project, env, onDirtyChange }: EnvironmentView
     setVariables(newVars);
   };
 
+  const handleImport = (importedVars: Variable[]) => {
+    // Create a map of existing variables for easier lookup/updating
+    const existingMap = new Map(variables.map(v => [v.key, v.value]));
+    
+    // Update or add imported variables
+    importedVars.forEach(v => {
+      if (v.key) {
+        existingMap.set(v.key, v.value);
+      }
+    });
+    
+    // Convert back to array
+    const newVariables = Array.from(existingMap.entries()).map(([key, value]) => ({ key, value }));
+    setVariables(newVariables);
+    setIsImportModalOpen(false);
+  };
+
   if (loading) return <div className="text-gray-500 text-center py-8">Loading...</div>;
   
   const isDirty = JSON.stringify(variables) !== initialVarsRef.current;
@@ -93,17 +112,25 @@ export const EnvironmentView = ({ project, env, onDirtyChange }: EnvironmentView
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
         <h3 className="text-lg font-medium text-gray-900">Environment Variables</h3>
-        <button
-          onClick={handleSave}
-          disabled={saving || !isDirty}
-          className={`font-medium py-2 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            saving || !isDirty
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
-          }`}
-        >
-          {saving ? 'Saving...' : isDirty ? 'Save Changes' : 'Saved'}
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="font-medium py-2 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-blue-500"
+          >
+            Import .env
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || !isDirty}
+            className={`font-medium py-2 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              saving || !isDirty
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
+            }`}
+          >
+            {saving ? 'Saving...' : isDirty ? 'Save Changes' : 'Saved'}
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
@@ -163,6 +190,12 @@ export const EnvironmentView = ({ project, env, onDirtyChange }: EnvironmentView
           Add Variable
         </button>
       </div>
+
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handleImport}
+      />
     </div>
   );
 };
