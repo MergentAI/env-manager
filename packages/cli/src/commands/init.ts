@@ -5,7 +5,7 @@ import { saveLocalConfig, loadGlobalConfig } from '../config';
 export const initCommand = async () => {
   const globalConfig = await loadGlobalConfig();
   if (!globalConfig) {
-    console.error('❌ No global configuration found. Please run "envmanager config" first.');
+    console.error('❌ No global configuration found. Please run "easyenvmanager config" first.');
     process.exit(1);
   }
 
@@ -70,5 +70,5 @@ export const initCommand = async () => {
     lastSynced: undefined,
   });
 
-  console.log(`✅ Project '${project}' initialized locally. Run 'envmanager pull' to fetch variables.`);
+  console.log(`✅ Project '${project}' initialized locally. Run 'easyenvmanager pull' to fetch variables.`);
 };

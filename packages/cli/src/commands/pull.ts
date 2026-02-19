@@ -8,7 +8,7 @@ const ENV_FILE = '.env';
 export const pullCommand = async (options: { force?: boolean }) => {
   const config = await loadConfig();
   if (!config) {
-    console.error('❌ No configuration found. Please run "envmanager init" first.');
+    console.error('❌ No configuration found. Please run "easyenvmanager init" first.');
     process.exit(1);
   }
 

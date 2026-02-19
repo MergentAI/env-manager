@@ -7,7 +7,7 @@ import { configCommand } from './commands/config';
 const program = new Command();
 
 program
-  .name('envmanager')
+  .name('easyenvmanager')
   .description('CLI for Env Manager')
   .version('1.0.0');
 

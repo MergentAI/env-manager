@@ -4,7 +4,7 @@ import { loadConfig } from '../config';
 export const statusCommand = async () => {
   const config = await loadConfig();
   if (!config) {
-    console.error('No configuration found. Please run "envmanager init" first.');
+    console.error('No configuration found. Please run "easyenvmanager init" first.');
     process.exit(1);
   }
 
@@ -32,7 +32,7 @@ export const statusCommand = async () => {
     if (!localDate) {
       console.log('⚠️  Local environment has never been synced.');
       console.log(`   Remote last modified: ${serverDate.toLocaleString()}`);
-      console.log('   Run "envmanager pull" to fetch variables.');
+      console.log('   Run "easyenvmanager pull" to fetch variables.');
       return;
     }
 
@@ -40,7 +40,7 @@ export const statusCommand = async () => {
       console.log('❌ Out of sync.');
       console.log(`   Remote last modified: ${serverDate.toLocaleString()}`);
       console.log(`   Local last synced:    ${localDate.toLocaleString()}`);
-      console.log('   Run "envmanager sync" or "envmanager pull" to update.');
+      console.log('   Run "easyenvmanager pull" to update.');
     } else {
       console.log('✅ Up to date.');
       console.log(`   Last synced: ${localDate.toLocaleString()}`);

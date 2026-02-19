@@ -2,8 +2,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';
 
-const GLOBAL_CONFIG_FILE = path.join(os.homedir(), '.envmanager', 'config.json');
-const LOCAL_CONFIG_FILE = '.envmanager.json';
+const GLOBAL_CONFIG_FILE = path.join(os.homedir(), '.easyenvmanager', 'config.json');
+const LOCAL_CONFIG_FILE = '.easyenvmanager.json';
 
 export interface GlobalConfig {
   serverUrl: string;
