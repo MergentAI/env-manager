@@ -17,21 +17,35 @@ This document serves as the primary instruction set for AI agents and developers
         }
         ```
     *   **Auth:** Simple `x-api-key` header checked against `ADMIN_SECRET` env var.
-    *   **Port:** Defaults to 3000.
+    *   **Port:** Defaults to 3000 (Internal), 3000 (Host - customizable via `SERVER_PORT`).
+    *   **Security:** Path traversal protection on project/env names.
 *   `packages/client`: React (Vite) frontend.
     *   **UI:** Tailwind CSS.
     *   **State:** Local state/Context API.
-    *   **Port:** Defaults to 5173.
-*   `packages/cli`: Node.js CLI tool.
-    *   **Local Config:** `.envmanager.json` in the user's project root.
+    *   **Serving:** Nginx container proxies API requests to server.
+    *   **Port:** Defaults to 80 (Internal), 80 (Host - customizable via `CLIENT_PORT`).
+*   `packages/cli`: Node.js CLI tool (`easyenvmanager`).
+    *   **Local Config:** `.easyenvmanager.json` in the user's project root.
+    *   **Global Config:** `~/.easyenvmanager/config.json`.
         *   Stores: `serverUrl`, `project`, `environment`, `secretKey` (optional, or use global), `lastSynced`.
     *   **Commands:**
-        *   `envmanager init`: Setup local config (URL, Key, Project, Env).
-        *   `envmanager status`: Check if local env is out of sync with server.
-        *   `envmanager sync`: Check `lastModified` on server vs local. If server is newer, pull and update `.env`.
-        *   `envmanager pull`: Force pull.
+        *   `easyenvmanager config`: Set global Server URL and Secret Key.
+        *   `easyenvmanager init`: Setup local config (Project, Env).
+        *   `easyenvmanager status`: Check if local env is out of sync with server.
+        *   `easyenvmanager pull`: Sync variables to local `.env`. Use `--force` to overwrite local changes.
 
-## 2. Build, Lint, and Test Commands
+## 2. Docker & Deployment
+
+The system is designed to be deployed via Docker Compose.
+
+*   **Orchestration:** `docker-compose.yml` (Production) + `docker-compose.override.yml` (Local Dev).
+*   **Configuration:** All deployment variables are managed in the root `.env` file.
+    *   `CLIENT_PORT`: Port for the frontend (default: 80).
+    *   `SERVER_PORT`: Port for the backend API (default: 3000).
+    *   `ADMIN_SECRET`: The master key for authentication.
+    *   `VITE_API_URL`: (Build time) API URL for the client. Default is `/api` (internal proxy).
+
+## 3. Build, Lint, and Test Commands
 
 Run these commands from the **root directory** to affect all workspaces, or cd into a specific package to run them individually.
 
@@ -55,19 +69,12 @@ Run these commands from the **root directory** to affect all workspaces, or cd i
     npm test --workspaces
     ```
 
-*   **Run Single Test (Jest/Vitest):**
-    To run a specific test file or test case in a specific package:
-    ```bash
-    # Example for server package
-    npm test --workspace=packages/server -- -t 'should validate api key'
-    ```
-
 *   **Start Dev Servers:**
     ```bash
     npm run dev --workspaces
     ```
 
-## 3. Code Style & Conventions
+## 4. Code Style & Conventions
 
 ### General
 *   **Language:** TypeScript (Strict Mode). No `any` unless absolutely necessary and commented.
@@ -104,7 +111,7 @@ import { getProjectData } from './storage';
 *   **File I/O (Server):** Use `fs/promises` for all file operations. Ensure directory existence before writing.
 *   **React:** Functional components with Hooks. avoid class components.
 
-## 4. Agent Guidelines (Cursor/Copilot)
+## 5. Agent Guidelines (Cursor/Copilot)
 *   **Context:** Always read `AGENTS.md` before starting a task to understand standard commands and structure.
 *   **Validation:** Verify changes by running `npm run build` and `npm test` (if applicable) before completing a task.
 *   **Scaffolding:** When creating new features, follow the existing folder structure (e.g., separate routes from controllers in server, separate components in client).
