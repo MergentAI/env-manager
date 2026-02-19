@@ -63,11 +63,6 @@ If you are developing the tool locally:
 cd packages/cli && npm link
 ```
 
-Or link locally from source:
-
-```bash
-cd packages/cli && npm link
-```
 
 ### 1. Configuration
 
