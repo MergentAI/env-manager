@@ -1,4 +1,6 @@
 import axios from 'axios';
+import fs from 'fs-extra';
+import path from 'path';
 import { loadConfig } from '../config';
 
 export const statusCommand = async () => {
@@ -8,8 +10,9 @@ export const statusCommand = async () => {
     process.exit(1);
   }
 
-  const { serverUrl, project, environment, secretKey, lastSynced } = config;
+  const { serverUrl, project, environment, secretKey } = config;
   const statusUrl = `${serverUrl}/api/projects/${project}/env/${environment}/status`;
+  const envPath = path.resolve(process.cwd(), '.env');
 
   console.log(`Checking status for ${project}:${environment} on ${serverUrl}...`);
 
@@ -22,7 +25,17 @@ export const statusCommand = async () => {
 
     const { lastModified } = response.data;
     const serverDate = lastModified ? new Date(lastModified) : null;
-    const localDate = lastSynced ? new Date(lastSynced) : null;
+    
+    // Check local .env file
+    let localDate: Date | null = null;
+    try {
+      if (await fs.pathExists(envPath)) {
+        const stats = await fs.stat(envPath);
+        localDate = stats.mtime;
+      }
+    } catch (e) {
+      // Ignore error, treat as not existing
+    }
 
     if (!serverDate) {
       console.log('⚠️  Remote environment has no last modified date.');
@@ -30,20 +43,21 @@ export const statusCommand = async () => {
     }
 
     if (!localDate) {
-      console.log('⚠️  Local environment has never been synced.');
+      console.log('⚠️  Local .env file is missing.');
       console.log(`   Remote last modified: ${serverDate.toLocaleString()}`);
       console.log('   Run "easyenvmanager pull" to fetch variables.');
       return;
     }
 
+    // Compare: If server is newer than local file
     if (serverDate > localDate) {
       console.log('❌ Out of sync.');
       console.log(`   Remote last modified: ${serverDate.toLocaleString()}`);
-      console.log(`   Local last synced:    ${localDate.toLocaleString()}`);
+      console.log(`   Local .env modified:  ${localDate.toLocaleString()}`);
       console.log('   Run "easyenvmanager pull" to update.');
     } else {
       console.log('✅ Up to date.');
-      console.log(`   Last synced: ${localDate.toLocaleString()}`);
+      console.log(`   Local .env modified: ${localDate.toLocaleString()}`);
     }
 
   } catch (error: any) {

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'fs-extra';
 import path from 'path';
-import { loadConfig, updateLastSynced } from '../config';
+import { loadConfig } from '../config';
 
 const ENV_FILE = '.env';
 
@@ -12,21 +12,28 @@ export const pullCommand = async (options: { force?: boolean }) => {
     process.exit(1);
   }
 
-  const { serverUrl, project, environment, secretKey, lastSynced } = config;
+  const { serverUrl, project, environment, secretKey } = config;
   const url = `${serverUrl}/api/projects/${project}/env/${environment}`;
+  const envPath = path.resolve(process.cwd(), ENV_FILE);
   
   // Smart Sync Check (unless forced)
-  if (!options.force && lastSynced) {
+  if (!options.force) {
     try {
-      const statusUrl = `${url}/status`;
-      const statusRes = await axios.get(statusUrl, { headers: { 'x-api-key': secretKey } });
-      const { lastModified } = statusRes.data;
+      // check local file existence and date
+      if (await fs.pathExists(envPath)) {
+        const stats = await fs.stat(envPath);
+        const localDate = stats.mtime;
 
-      if (lastModified && new Date(lastModified) <= new Date(lastSynced)) {
-        console.log('✅ Environment variables are already up to date.');
-        return;
+        const statusUrl = `${url}/status`;
+        const statusRes = await axios.get(statusUrl, { headers: { 'x-api-key': secretKey } });
+        const { lastModified } = statusRes.data;
+  
+        if (lastModified && new Date(lastModified) <= localDate) {
+          console.log('✅ Environment variables are already up to date.');
+          return;
+        }
+        console.log('🔄 Updates detected. Pulling changes...');
       }
-      console.log('🔄 Updates detected. Pulling changes...');
     } catch (err) {
       // If status check fails, proceed to pull anyway
     }
@@ -43,7 +50,7 @@ export const pullCommand = async (options: { force?: boolean }) => {
       },
     });
 
-    const { lastModified, variables } = response.data;
+    const { variables } = response.data;
     
     if (!variables) {
       console.error('❌ No variables found in server response.');
@@ -55,12 +62,11 @@ export const pullCommand = async (options: { force?: boolean }) => {
       envContent += `${key}=${value}\n`;
     }
 
-    await fs.writeFile(path.resolve(process.cwd(), ENV_FILE), envContent);
+    await fs.writeFile(envPath, envContent);
     console.log(`✅ .env file updated successfully.`);
     
-    if (lastModified) {
-      await updateLastSynced(lastModified);
-    }
+    // We no longer update lastSynced in config to avoid git noise
+    // The filesystem mtime is now the source of truth
 
   } catch (error: any) {
     if (error.response) {
