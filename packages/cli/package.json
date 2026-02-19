@@ -1,6 +1,6 @@
 {
   "name": "easyenvmanager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A CLI tool for syncing environment variables from a self-hosted Env Manager server.",
   "keywords": [
     "env",
