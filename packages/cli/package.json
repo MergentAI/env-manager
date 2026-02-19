@@ -2,6 +2,25 @@
   "name": "easyenvmanager",
   "version": "1.0.0",
   "description": "A CLI tool for syncing environment variables from a self-hosted Env Manager server.",
+  "keywords": [
+    "env",
+    "environment-variables",
+    "dotenv",
+    "cli",
+    "sync",
+    "devops",
+    "self-hosted"
+  ],
+  "homepage": "https://github.com/mergentAI/env-manager#readme",
+  "bugs": {
+    "url": "https://github.com/mergentAI/env-manager/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mergentAI/env-manager.git"
+  },
+  "license": "MIT",
+  "author": "Kaanayden",
   "main": "dist/index.js",
   "bin": {
     "easyenvmanager": "bin/easyenvmanager.js"
