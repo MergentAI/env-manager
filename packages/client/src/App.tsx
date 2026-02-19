@@ -29,7 +29,22 @@ function App() {
     try {
       const envs = await api.getEnvironments(project);
       const uniqueEnvs = Array.from(new Set([...envs, 'local', 'alpha', 'prod']));
+      
+      // Sort: local, alpha, prod, then alphabetical
+      const order = ['local', 'alpha', 'prod'];
+      uniqueEnvs.sort((a, b) => {
+        const indexA = order.indexOf(a);
+        const indexB = order.indexOf(b);
+        
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        
+        return a.localeCompare(b);
+      });
+
       setEnvironments(uniqueEnvs);
+      
       if (!uniqueEnvs.includes(selectedEnv)) {
         setSelectedEnv(uniqueEnvs[0] || 'local');
       }
