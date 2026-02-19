@@ -20,7 +20,7 @@ program.command('init')
   .action(initCommand);
 
 program.command('pull')
-  .description('Pull environment variables')
+  .description('Pull environment variables (use --force to overwrite)')
   .option('-f, --force', 'Force update regardless of timestamps', false)
   .action(pullCommand);
 
