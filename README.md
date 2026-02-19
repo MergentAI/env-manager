@@ -49,10 +49,18 @@ Use the CLI to sync variables to your local machine.
 
 ### Installation
 
-If published to npm:
+**Option 1: Install via npm (Recommended)**
+[View on npm](https://www.npmjs.com/package/easyenvmanager)
 
 ```bash
 npm install -g easyenvmanager
+```
+
+**Option 2: Run from Source (For Developers)**
+If you are developing the tool locally:
+
+```bash
+cd packages/cli && npm link
 ```
 
 Or link locally from source:
