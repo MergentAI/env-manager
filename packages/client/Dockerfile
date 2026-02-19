@@ -16,8 +16,9 @@ RUN npm ci
 COPY packages/client ./packages/client
 
 # Build the client
-# We set VITE_API_URL to /api because Nginx will proxy requests there
-ENV VITE_API_URL=/api
+# We accept VITE_API_URL as a build argument
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build --workspace=@env-manager/client
 
 # Stage 2: Serve with Nginx
