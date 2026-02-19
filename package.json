@@ -9,11 +9,12 @@
     "build": "npm run build --workspaces",
     "test": "npm test --workspaces",
     "lint": "npm run lint --workspaces",
-    "dev": "npm run dev --workspaces"
+    "dev": "concurrently \"npm run dev --workspace=@env-manager/server\" \"npm run dev --workspace=@env-manager/client\" --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\""
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
+    "concurrently": "^9.2.1",
     "eslint": "^8.56.0",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
   }
 }

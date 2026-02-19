@@ -1,14 +1,14 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = "/api";
 
 const headers = () => ({
-  'Content-Type': 'application/json',
+  "Content-Type": "application/json",
 });
 
 // Helper for requests with credentials (cookies)
 const fetchWithAuth = (url: string, options: RequestInit = {}) => {
   return fetch(url, {
     ...options,
-    credentials: 'include', // Important: This sends the HttpOnly cookie
+    credentials: "include", // Important: This sends the HttpOnly cookie
     headers: {
       ...headers(),
       ...options.headers,
@@ -19,19 +19,22 @@ const fetchWithAuth = (url: string, options: RequestInit = {}) => {
 export const api = {
   login: async (apiKey: string) => {
     const res = await fetch(`${API_URL}/login`, {
-      method: 'POST',
+      method: "POST",
       headers: headers(),
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify({ apiKey }),
     });
-    
-    if (res.status === 401) throw new Error('Invalid API Key');
-    if (!res.ok) throw new Error('Login failed');
+
+    if (res.status === 401) throw new Error("Invalid API Key");
+    if (!res.ok) throw new Error("Login failed");
     return res.json();
   },
 
   logout: async () => {
-    await fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' });
+    await fetch(`${API_URL}/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
     window.location.reload();
   },
 
@@ -45,41 +48,50 @@ export const api = {
 
   getProjects: async () => {
     const res = await fetchWithAuth(`${API_URL}/projects`);
-    if (res.status === 401) throw new Error('Unauthorized');
+    if (res.status === 401) throw new Error("Unauthorized");
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   },
 
   getEnvironments: async (project: string) => {
     const res = await fetchWithAuth(`${API_URL}/projects/${project}/envs`);
-    if (res.status === 401) throw new Error('Unauthorized');
+    if (res.status === 401) throw new Error("Unauthorized");
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   },
 
   getEnvVars: async (project: string, env: string) => {
-    const res = await fetchWithAuth(`${API_URL}/projects/${project}/env/${env}`);
-    if (res.status === 401) throw new Error('Unauthorized');
+    const res = await fetchWithAuth(
+      `${API_URL}/projects/${project}/env/${env}`,
+    );
+    if (res.status === 401) throw new Error("Unauthorized");
     if (res.status === 404) return { variables: {}, lastModified: null };
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   },
 
-  saveEnvVars: async (project: string, env: string, variables: Record<string, string>) => {
-    const res = await fetchWithAuth(`${API_URL}/projects/${project}/env/${env}`, {
-      method: 'POST',
-      body: JSON.stringify({ variables }),
-    });
-    if (res.status === 401) throw new Error('Unauthorized');
+  saveEnvVars: async (
+    project: string,
+    env: string,
+    variables: Record<string, string>,
+  ) => {
+    const res = await fetchWithAuth(
+      `${API_URL}/projects/${project}/env/${env}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ variables }),
+      },
+    );
+    if (res.status === 401) throw new Error("Unauthorized");
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   },
 
   deleteProject: async (project: string) => {
     const res = await fetchWithAuth(`${API_URL}/projects/${project}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
-    if (res.status === 401) throw new Error('Unauthorized');
+    if (res.status === 401) throw new Error("Unauthorized");
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   },

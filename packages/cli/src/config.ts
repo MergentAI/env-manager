@@ -1,9 +1,14 @@
-import fs from 'fs-extra';
-import path from 'path';
-import os from 'os';
+import fs from "fs-extra";
+import path from "path";
+import os from "os";
+import { normalizeBaseUrl } from "./utils/url";
 
-const GLOBAL_CONFIG_FILE = path.join(os.homedir(), '.easyenvmanager', 'config.json');
-const LOCAL_CONFIG_FILE = '.easyenvmanager.json';
+const GLOBAL_CONFIG_FILE = path.join(
+  os.homedir(),
+  ".easyenvmanager",
+  "config.json",
+);
+const LOCAL_CONFIG_FILE = ".easyenvmanager.json";
 
 export interface GlobalConfig {
   serverUrl: string;
@@ -26,7 +31,11 @@ export const saveGlobalConfig = async (config: GlobalConfig): Promise<void> => {
 
 export const loadGlobalConfig = async (): Promise<GlobalConfig | null> => {
   if (await fs.pathExists(GLOBAL_CONFIG_FILE)) {
-    return fs.readJson(GLOBAL_CONFIG_FILE);
+    const config = await fs.readJson(GLOBAL_CONFIG_FILE);
+    if (config.serverUrl) {
+      config.serverUrl = normalizeBaseUrl(config.serverUrl);
+    }
+    return config;
   }
   return null;
 };
