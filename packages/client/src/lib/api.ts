@@ -74,4 +74,13 @@ export const api = {
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   },
+
+  deleteProject: async (project: string) => {
+    const res = await fetchWithAuth(`${API_URL}/projects/${project}`, {
+      method: 'DELETE',
+    });
+    if (res.status === 401) throw new Error('Unauthorized');
+    if (!res.ok) throw new Error(res.statusText);
+    return res.json();
+  },
 };

@@ -2,12 +2,29 @@ interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
   message: string;
+  confirmText?: string;
+  cancelText?: string;
+  confirmColor?: 'red' | 'blue';
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-export const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }: ConfirmModalProps) => {
+export const ConfirmModal = ({ 
+  isOpen, 
+  title, 
+  message, 
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  confirmColor = 'red',
+  onConfirm, 
+  onCancel 
+}: ConfirmModalProps) => {
   if (!isOpen) return null;
+
+  const colorClasses = {
+    red: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+    blue: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
@@ -24,13 +41,13 @@ export const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }: Co
               onClick={onCancel}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Cancel
+              {cancelText}
             </button>
             <button
               onClick={onConfirm}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className={`px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${colorClasses[confirmColor]}`}
             >
-              Discard Changes
+              {confirmText}
             </button>
           </div>
         </div>

@@ -85,6 +85,7 @@ function App() {
         isOpen={confirmModal.isOpen}
         title="Unsaved Changes"
         message="You have unsaved changes in the current environment. Do you want to discard them and switch?"
+        confirmText="Discard Changes"
         onConfirm={handleConfirmDiscard}
         onCancel={handleCancelDiscard}
       />

@@ -56,3 +56,10 @@ export const listEnvironments = async (project: string): Promise<string[]> => {
     .filter(item => item.endsWith('.json'))
     .map(item => item.replace('.json', ''));
 };
+
+export const deleteProjectData = async (project: string): Promise<void> => {
+  const projectDir = path.join(DATA_DIR, project);
+  if (await fs.pathExists(projectDir)) {
+    await fs.remove(projectDir);
+  }
+};

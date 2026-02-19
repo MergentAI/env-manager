@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
+import { ConfirmModal } from './ConfirmModal';
 
 interface ProjectListProps {
   onSelectProject: (project: string) => void;
@@ -9,6 +10,7 @@ interface ProjectListProps {
 export const ProjectList = ({ onSelectProject, selectedProject }: ProjectListProps) => {
   const [projects, setProjects] = useState<string[]>([]);
   const [newProject, setNewProject] = useState('');
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -31,23 +33,51 @@ export const ProjectList = ({ onSelectProject, selectedProject }: ProjectListPro
     }
   };
 
+  const handleDeleteClick = (e: React.MouseEvent, project: string) => {
+    e.stopPropagation();
+    setProjectToDelete(project);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (projectToDelete) {
+      try {
+        await api.deleteProject(projectToDelete);
+        window.location.reload();
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+      }
+    }
+    setProjectToDelete(null);
+  };
+
   return (
     <div className="w-64 bg-gray-900 text-white min-h-screen p-4 flex flex-col">
       <h2 className="text-xl font-bold mb-6 tracking-wide">Projects</h2>
       
       <div className="flex-1 overflow-y-auto space-y-2">
         {projects.map((project) => (
-          <button
+          <div
             key={project}
             onClick={() => onSelectProject(project)}
-            className={`w-full text-left px-4 py-2 rounded transition-colors ${
+            className={`group w-full text-left px-4 py-2 rounded transition-colors flex items-center justify-between cursor-pointer ${
               selectedProject === project
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'hover:bg-gray-800 text-gray-300'
             }`}
           >
-            {project}
-          </button>
+            <span className="truncate flex-1">{project}</span>
+            <button
+              onClick={(e) => handleDeleteClick(e, project)}
+              className={`p-1 rounded hover:bg-red-500 hover:text-white transition-opacity ${
+                selectedProject === project ? 'text-blue-200' : 'text-gray-500 opacity-0 group-hover:opacity-100'
+              }`}
+              title="Delete project"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
         ))}
       </div>
 
@@ -67,6 +97,16 @@ export const ProjectList = ({ onSelectProject, selectedProject }: ProjectListPro
           Create Project
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={!!projectToDelete}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${projectToDelete}"? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmColor="red"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setProjectToDelete(null)}
+      />
     </div>
   );
 };

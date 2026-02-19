@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import { getProjectEnv, saveProjectEnv, listProjects, listEnvironments } from './storage';
+import { getProjectEnv, saveProjectEnv, listProjects, listEnvironments, deleteProjectData } from './storage';
 
 dotenv.config();
 
@@ -132,6 +132,23 @@ app.post('/api/projects/:project/env/:env', authMiddleware, async (req, res) => 
     res.json(data);
   } catch (error) {
     console.error('Error saving environment:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Delete Project
+app.delete('/api/projects/:project', authMiddleware, async (req, res) => {
+  try {
+    const { project } = req.params;
+    
+    if (!isValidName(project)) {
+        return res.status(400).json({ error: 'Invalid project name' });
+    }
+
+    await deleteProjectData(project);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting project:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
