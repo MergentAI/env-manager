@@ -8,62 +8,62 @@ A self-hosted environment variable management system designed for teams and deve
 ## 🌟 Features
 
 - **Self-Hosted:** Full control over your data. Run it on your own infrastructure (Docker/Coolify).
-- **Secure Storage:** Variables are stored securely on your server.
+- **Unified Architecture:** Single Docker container serves both the API and the React Dashboard.
+- **Secure Storage:** Variables are stored securely on your server in JSON format.
 - **Team Sync:** Share variables instantly across your team without committing `.env` files to git.
 - **Multi-Environment:** Manage `development`, `staging`, `production`, etc. per project.
 - **CLI Integration:** Sync variables with a single command (`envmanager pull`).
 - **Smart Sync:** Only pulls updates if the server has newer changes (unless forced).
-- **Docker Ready:** Easy deployment with Docker Compose.
 
 ---
 
-## 🚀 Quick Start (Self-Hosting)
+## 🚀 Deployment (Docker)
 
-### Prerequisites
+The simplest way to run Env Manager is with Docker Compose. This runs the **Production** build where the server hosts the static client files.
 
-- Docker & Docker Compose
-- (Optional) Coolify or another PaaS for easy deployment.
+### 1. Clone & Configure
 
-### Installation
+```bash
+git clone https://github.com/your-username/env-manager.git
+cd env-manager
+cp .env.example .env
+# Edit .env: Set a secure ADMIN_SECRET
+```
 
-1.  **Clone the Repository:**
+### 2. Run
 
-    ```bash
-    git clone https://github.com/your-username/env-manager.git
-    cd env-manager
-    ```
+```bash
+docker-compose up -d
+```
 
-2.  **Configure Environment:**
-    Copy the example file and set your `ADMIN_SECRET`.
+### 3. Access
 
-    ```bash
-    cp .env.example .env
-    # Edit .env and change ADMIN_SECRET to a strong random string
-    ```
-
-3.  **Run with Docker Compose:**
-
-    ```bash
-    docker-compose up -d
-    ```
-
-4.  **Access the Dashboard:**
-    Open `http://localhost:3000` (or your configured domain/port).
-    - **Login:** Use the `ADMIN_SECRET` you set in step 2.
+- **Dashboard:** `http://localhost:3000` (Login with your `ADMIN_SECRET`)
+- **API Health:** `http://localhost:3000/api`
 
 ---
 
 ## 💻 CLI Usage
 
-Install the CLI tool globally via npm:
+Use the CLI to sync variables to your local machine.
+
+### Installation
+
+If published to npm:
 
 ```bash
 npm install -g easyenvmanager
 ```
 
+Or link locally from source:
+
+```bash
+cd packages/cli && npm link
+```
+
 ### 1. Configuration
 
-Link your local machine to your self-hosted server.
+Link your machine to your server.
 
 ```bash
 easyenvmanager config
@@ -72,19 +72,18 @@ easyenvmanager config
 # - Secret Key (Your ADMIN_SECRET)
 ```
 
-### 2. Initialization
+### 2. Initialization (Per Project)
 
-Run this inside your project root to link it to an environment.
+Run inside your project root.
 
 ```bash
-cd my-awesome-project
 easyenvmanager init
 # Select Project -> Select Environment (e.g., development)
 ```
 
 ### 3. Sync Variables
 
-Pull the latest variables from the server into your local `.env` file.
+Pull latest variables into `.env`.
 
 ```bash
 easyenvmanager pull
@@ -93,13 +92,10 @@ easyenvmanager pull
 **Options:**
 
 - `--force` (`-f`): Overwrite local changes regardless of timestamps.
-  ```bash
-  easyenvmanager pull --force
-  ```
 
 ### 4. Check Status
 
-Check if your local variables are out of date without modifying anything.
+Check if local variables are out of date.
 
 ```bash
 easyenvmanager status
@@ -113,9 +109,9 @@ easyenvmanager status
 
 This is a monorepo managed with npm workspaces:
 
-- `packages/server`: Express.js API (Port 3000)
-- `packages/client`: React Dashboard (Vite, Port 5173)
-- `packages/cli`: The `easyenvmanager` CLI tool
+- `packages/server`: Express.js API (Port 3000). Serves client in prod.
+- `packages/client`: React Dashboard (Vite, Port 5173). Proxies `/api` to server in dev.
+- `packages/cli`: The `easyenvmanager` CLI tool.
 
 ### Running Locally
 
@@ -129,26 +125,30 @@ This is a monorepo managed with npm workspaces:
 
     ```bash
     npm run dev
-    # Starts Server, Client, and CLI watch mode in parallel
+    # Starts Server (Blue) and Client (Green) in parallel
     ```
 
-3.  **Local Testing:**
-    - Server: `http://localhost:3000`
-    - Client: `http://localhost:5173`
+3.  **Access:**
+    - **Client (Dev):** `http://localhost:5173` (Proxies API calls to 3000)
+    - **Server (API):** `http://localhost:3000`
 
 ---
 
-## 🐳 Docker Deployment (Advanced)
+## 🐳 Advanced Configuration
 
 ### Custom Port
 
-You can customize the application port by editing the root `.env` file:
+Customize the application port by editing the root `.env` file:
 
 ```bash
 SERVER_PORT=4000
 ```
 
 Then restart: `docker-compose up -d`.
+
+### Data Persistence
+
+Data is stored in `packages/server/data`, which is mounted as a volume in `docker-compose.yml`. Ensure this directory is backed up.
 
 ---
 
