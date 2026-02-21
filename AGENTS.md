@@ -9,21 +9,13 @@ This document serves as the primary instruction set for AI agents and developers
 
 - `packages/server`: Express.js backend that also serves the React frontend.
   - **Storage:** File-based JSON storage in `packages/server/data/<project>/<env>.json`.
-  - **Data Structure:**
-    ```json
-    {
-      "lastModified": "ISO-8601-DATE",
-      "variables": { "KEY": "VALUE" }
-    }
-    ```
   - **Auth:** Simple `x-api-key` header checked against `ADMIN_SECRET` env var.
   - **Port:** Defaults to 3000 (Host/Internal via `SERVER_PORT`).
-  - **Static Serving:** Serves built client files from `packages/client/dist`.
-  - **Security:** Path traversal protection on project/env names.
+
 - `packages/client`: React (Vite) frontend.
   - **UI:** Tailwind CSS, Radix UI.
   - **State:** Local state/Context API.
-  - **Build:** Output to `dist`, served by server.
+
 - `packages/cli`: Node.js CLI tool (`easyenvmanager`).
   - **Commands:** `init`, `status`, `pull`, `config`.
 
@@ -33,50 +25,35 @@ The system is deployed via a single Docker container.
 
 - **Dockerfile:** Located in root. Multi-stage build for client and server.
 - **Orchestration:** `docker-compose.yml`.
-- **Configuration:**
-  - `SERVER_PORT`: Port for the application (default: 3000).
-  - `ADMIN_SECRET`: The master key for authentication.
+- **Configuration:** `SERVER_PORT` (default: 3000), `ADMIN_SECRET` (master key).
 
 ## 3. Build, Lint, and Test Commands
 
-Run these commands from the **root directory** to affect all workspaces, or cd into a specific package to run them individually.
+Run these commands from the **root directory** to affect all workspaces.
 
-- **Install Dependencies:**
-
-  ```bash
-  npm ci
-  ```
-
-- **Build All:**
-
-  ```bash
-  npm run build --workspaces
-  ```
-
-- **Lint All:**
-
-  ```bash
-  npm run lint --workspaces
-  ```
-
-- **Test All:**
-
-  ```bash
-  npm test --workspaces
-  ```
-
-- **Start Dev Servers:**
-  ```bash
-  npm run dev --workspaces
-  ```
+- **Install Dependencies:** `npm ci`
+- **Build All:** `npm run build --workspaces`
+- **Lint All:** `npm run lint --workspaces`
+- **Test All:** `npm test --workspaces`
+- **Start Dev Servers:** `npm run dev` (Concurrent client/server)
 
 ### Running a Single Test
 
-If using a test runner like Jest/Vitest (not currently set up but recommended):
+Use the `--workspace` flag to target a specific package and pass the file path to the test runner.
+
+**Note:** Tests are currently placeholders. When implementing tests, ensure a runner (e.g., Jest, Vitest, or Node native test runner) is configured in the respective `package.json`.
+
+**Example Pattern:**
 
 ```bash
-# Example for server tests
+# General pattern
+npm test --workspace=<workspace-name> -- <path-to-test-file>
+
+# Example (Server - if using a runner like Jest)
 npm test --workspace=@env-manager/server -- src/storage.test.ts
+
+# Example (Client - if using Vitest)
+npm test --workspace=@env-manager/client -- src/components/Button.test.tsx
 ```
 
 ## 4. Code Style & Conventions
@@ -85,14 +62,14 @@ npm test --workspace=@env-manager/server -- src/storage.test.ts
 
 - **Language:** TypeScript (Strict Mode). No `any` unless absolutely necessary.
 - **Formatting:** Prettier (2 spaces, semi-colons, single quotes).
-- **Linting:** ESLint.
+- **Linting:** ESLint with standard configuration.
 
 ### Imports
 
 Organize imports in the following order:
 
-1.  Node.js built-in modules (`fs`, `path`, etc.)
-2.  External libraries (`express`, `react`, etc.)
+1.  Node.js built-in modules (`fs`, `path`)
+2.  External libraries (`express`, `react`)
 3.  Internal modules (relative paths)
 
 ```typescript
@@ -124,7 +101,42 @@ import { getProjectData } from "./storage";
 
 ## 5. Agent Guidelines
 
-- **Context:** Read `AGENTS.md` before starting tasks.
-- **Validation:** Run `npm run build` to verify changes.
-- **Scaffolding:** Follow existing folder structures.
-- **Docker:** When modifying `Dockerfile`, ensure multi-stage build efficiency.
+### Operational Rules
+
+1.  **Context First:** Read `AGENTS.md` and relevant `README.md` files before starting tasks.
+2.  **Safety:**
+    - **Never** commit secrets or `.env` files.
+    - **Never** run destructive commands without user confirmation.
+3.  **Pathing:** Always use **absolute paths** when using file tools. Resolve relative paths against the project root `/Users/kaanayden/Documents/GitKraken/env-manager`.
+4.  **Verification:**
+    - After modifying code, run `npm run build` to check for compilation errors.
+    - Run `npm run lint` to ensure code style compliance.
+    - If tests exist, run them to verify no regressions.
+
+### Implementation Workflow
+
+1.  **Analyze:** specific file locations and dependencies.
+2.  **Plan:** outline changes before editing.
+3.  **Execute:** use `edit` or `write` tools.
+4.  **Verify:** run build/lint/test commands.
+
+### Scaffolding
+
+- Follow existing folder structures.
+- When adding new packages, update the root `package.json` workspaces.
+- Ensure `Dockerfile` is updated if new build steps are introduced.
+
+## 6. Project Specific Details
+
+- **Environment Variables:**
+  - `ADMIN_SECRET`: Required for all API requests.
+  - `SERVER_PORT`: Port for the server (default 3000).
+- **Data Storage:**
+  - JSON files are stored in `packages/server/data/`.
+  - Ensure correct permissions when running in Docker.
+
+## 7. Troubleshooting
+
+- **Module Not Found:** Ensure you have run `npm ci` in the root directory.
+- **Build Failures:** Check for TypeScript errors in the specific workspace using `npm run build --workspace=@env-manager/<workspace>`.
+- **Docker Issues:** Check logs with `docker-compose logs -f`. Ensure ports are not in use.
