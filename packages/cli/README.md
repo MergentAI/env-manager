@@ -13,6 +13,7 @@ npm install -g easyenvmanager
 ## 🚀 Usage
 
 ### 1. Connect to Server
+
 First, link your local machine to your self-hosted Env Manager server.
 
 ```bash
@@ -23,6 +24,7 @@ easyenvmanager config
 ```
 
 ### 2. Initialize Project
+
 Run this inside your project root to link it to a specific project and environment.
 
 ```bash
@@ -32,16 +34,26 @@ easyenvmanager init
 ```
 
 ### 3. Sync Variables
+
 Pull the latest variables from the server into your local `.env` file.
 
 ```bash
 easyenvmanager pull
 ```
 
+**How it works:**
+
+- **Smart Check:** The CLI compares the _content_ of your local `.env` file with the server version. If they match, no changes are made.
+- **Safe Updates:** If your local file is older than the server version, it updates automatically.
+- **Conflict Resolution:** If your local file is **newer** and has different content, the CLI will warn you and ask for confirmation before overwriting.
+- **Strict Overwrite:** This command performs a strict overwrite. It does **not** merge keys. Local-only keys will be removed to match the server state exactly.
+
 **Options:**
-*   `--force` (`-f`): Overwrite local changes regardless of timestamps.
+
+- `--force` (`-f`): Skip all checks and overwrite the local `.env` file immediately.
 
 ### 4. Check Status
+
 Check if your local variables are out of date without modifying anything.
 
 ```bash
